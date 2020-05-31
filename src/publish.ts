@@ -56,22 +56,24 @@ const publish = async (
     throw new AggregateError(errors)
   }
 
-  const publishRes = await webStore.publish(target || 'default', token)
+  if (target !== 'draft') {
+    const publishRes = await webStore.publish(target || 'default', token)
 
-  if (!publishRes.status.includes('OK')) {
-    const errors: SemanticReleaseError[] = []
-    for (let i = 0; i < publishRes.status.length; i += 1) {
-      const code = publishRes.status[i]
-      const message = publishRes.statusDetail[i]
-      if (errorWhitelist.includes(code)) {
-        logger.warn(`${code}: ${message}`)
-      } else {
-        const err = new SemanticReleaseError(message, code)
-        errors.push(err)
+    if (!publishRes.status.includes('OK')) {
+      const errors: SemanticReleaseError[] = []
+      for (let i = 0; i < publishRes.status.length; i += 1) {
+        const code = publishRes.status[i]
+        const message = publishRes.statusDetail[i]
+        if (errorWhitelist.includes(code)) {
+          logger.warn(`${code}: ${message}`)
+        } else {
+          const err = new SemanticReleaseError(message, code)
+          errors.push(err)
+        }
       }
-    }
-    if (errors.length > 0) {
-      throw new AggregateError(errors)
+      if (errors.length > 0) {
+        throw new AggregateError(errors)
+      }
     }
   }
 
